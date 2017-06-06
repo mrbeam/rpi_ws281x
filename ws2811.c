@@ -86,8 +86,7 @@
 #define SPI	3
 
 // Spread Spectrum globals and definitions
-#define SPI_MAX_FREQ                            900000
-#define SPI_MIN_FREQ                            600000
+#define SPREAD_SPEC_BADWITH                     300000
 #define SPI_SPREAD_SPEC_CHANNELS                30
 unsigned int spread_spectrum_counter            = 0;
 int spread_spec_lookup[SPI_SPREAD_SPEC_CHANNELS];
@@ -730,13 +729,13 @@ static int check_hwver_and_gpionum(ws2811_t *ws2811)
     return -1;
 }
 
-static void populate_spread_spec_lookup(void)
+static void populate_spread_spec_lookup(uint32_t freq)
 {
     // generate non random lookup table according to the min, max and channel count
     size_t i;
     for (i = 0; i < SPI_SPREAD_SPEC_CHANNELS; i++)
     {
-        spread_spec_lookup[i] = SPI_MIN_FREQ + (((SPI_MAX_FREQ - SPI_MIN_FREQ) / SPI_SPREAD_SPEC_CHANNELS) * (i+1));
+        spread_spec_lookup[i] = (freq - SPREAD_SPEC_BADWITH / 2)  + ((SPREAD_SPEC_BADWITH / SPI_SPREAD_SPEC_CHANNELS) * (i+1));
     }
     // randomize the lookup table
     if (SPI_SPREAD_SPEC_CHANNELS > 1)
@@ -837,7 +836,7 @@ static ws2811_return_t spi_init(ws2811_t *ws2811)
     }
     pcm_raw_init(ws2811);
 
-    populate_spread_spec_lookup();
+    populate_spread_spec_lookup(ws2811->freq);
 
     return WS2811_SUCCESS;
 }
