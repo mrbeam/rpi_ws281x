@@ -86,8 +86,8 @@
 #define SPI	3
 
 // Spread Spectrum test globals
-uint32 counter = 0;
-uint32 lockup[11] = {-40000, 40000, 60000, 20000, 0, 100000, -80000, -100000, 80000, -20000, -60000};
+unsigned int counter = 0;
+unsigned int lockup[11] = {-40000, 40000, 60000, 20000, 0, 100000, -80000, -100000, 80000, -20000, -60000};
 
 // We use the mailbox interface to request memory from the VideoCore.
 // This lets us request one physically contiguous chunk, find its
@@ -1189,7 +1189,7 @@ ws2811_return_t  ws2811_render(ws2811_t *ws2811)
     if (driver_mode == SPI)
     {
         uint32_t speed = ws2811->freq * 3;
-        speed += lockup[counter % 11]
+        speed += lockup[counter % 11];
 
         if (ioctl(spi_fd, SPI_IOC_WR_MAX_SPEED_HZ, &speed) < 0)
         {
