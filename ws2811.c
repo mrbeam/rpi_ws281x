@@ -86,9 +86,9 @@
 #define SPI	3
 
 // Spread Spectrum globals and definitions
-#define SPREAD_SPEC_BADWITH                     300000
+#define SPREAD_SPEC_BANDWIDTH                     300000
 #define SPI_SPREAD_SPEC_CHANNELS                1000
-uint32 spread_spectrum_counter            = 0;
+uint32_t spread_spectrum_counter            = 0;
 uint32_t spread_spec_lookup[SPI_SPREAD_SPEC_CHANNELS];
 
 
@@ -735,7 +735,7 @@ static void populate_spread_spec_lookup(uint32_t freq)
     size_t i;
     for (i = 0; i < SPI_SPREAD_SPEC_CHANNELS; i++)
     {
-        spread_spec_lookup[i] = (freq - SPREAD_SPEC_BADWITH / 2)  + ((SPREAD_SPEC_BADWITH / SPI_SPREAD_SPEC_CHANNELS) * (i+1));
+        spread_spec_lookup[i] = (freq - SPREAD_SPEC_BANDWIDTH / 2)  + ((SPREAD_SPEC_BANDWIDTH / SPI_SPREAD_SPEC_CHANNELS) * (i+1));
     }
     // randomize the lookup table
     if (SPI_SPREAD_SPEC_CHANNELS > 1)
