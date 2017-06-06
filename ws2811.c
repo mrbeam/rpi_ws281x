@@ -85,9 +85,13 @@
 #define PCM	2
 #define SPI	3
 
-// Spread Spectrum test globals
-unsigned int counter = 0;
-unsigned int lockup[11] = {-40000, 40000, 60000, 20000, 0, 100000, -80000, -100000, 80000, -20000, -60000};
+// Spread Spectrum globals and definitions
+#define SPI_MAX_FREQ                            900000
+#define SPI_MIN_FREQ                            600000
+#define SPI_SPREAD_SPEC_CHANNELS                30
+unsigned int spread_spectrum_counter            = 0;
+int spread_spec_lookup[SPI_SPREAD_SPEC_CHANNELS];
+
 
 // We use the mailbox interface to request memory from the VideoCore.
 // This lets us request one physically contiguous chunk, find its
@@ -811,7 +815,31 @@ static ws2811_return_t spi_init(ws2811_t *ws2811)
     }
     pcm_raw_init(ws2811);
 
+    populate_spread_spec_lookup();
+
     return WS2811_SUCCESS;
+}
+
+static populate_spread_spec_lookup()
+{
+    // generate non random lookup table according to the min, max and channel count
+    size_t i;
+    for (i = 0; i < SPI_SPREAD_SPEC_CHANNELS; i++)
+    {
+        spread_spec_lookup[i] = ((SPI_MAX_FREQ - SPI_MIN_FREQ) / SPI_SPREAD_SPEC_CHANNELS) * (i+1)
+    }
+    // randomize the lookup table
+    if (SPI_SPREAD_SPEC_CHANNELS > 1)
+    {
+        size_t j;
+        for (j = 0; j < SPI_SPREAD_SPEC_CHANNELS - 1; j++)
+        {
+          size_t k = j + rand() / (RAND_MAX / (SPI_SPREAD_SPEC_CHANNELS - j) + 1);
+          int t = spread_spec_lookup[k];
+          spread_spec_lookup[k] = spread_spec_lookup[j];
+          spread_spec_lookup[j] = t;
+        }
+    }
 }
 
 static ws2811_return_t spi_transfer(ws2811_t *ws2811)
@@ -1188,19 +1216,14 @@ ws2811_return_t  ws2811_render(ws2811_t *ws2811)
     // do the spread spectrum magic
     if (driver_mode == SPI)
     {
-        uint32_t speed = ws2811->freq * 3;
-        speed += lockup[counter % 11];
+        uint32_t speed = spread_spec_lookup[spread_spectrum_counter] * 3;
 
         if (ioctl(ws2811->device->spi_fd, SPI_IOC_WR_MAX_SPEED_HZ, &speed) < 0)
         {
             return WS2811_ERROR_SPI_SETUP;
         }
-        if (ioctl(ws2811->device->spi_fd, SPI_IOC_RD_MAX_SPEED_HZ, &speed) < 0)
-        {
-            return WS2811_ERROR_SPI_SETUP;
-        }
 
-        counter++;
+        spread_spectrum_counter++;
     }
 
     // Wait for any previous DMA operation to complete.
