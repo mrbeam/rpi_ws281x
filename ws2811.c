@@ -87,7 +87,7 @@
 
 // Spread Spectrum globals and definitions
 #define SPREAD_SPEC_BADWITH                     300000
-#define SPI_SPREAD_SPEC_CHANNELS                30
+#define SPI_SPREAD_SPEC_CHANNELS                1000
 unsigned int spread_spectrum_counter            = 0;
 int spread_spec_lookup[SPI_SPREAD_SPEC_CHANNELS];
 
