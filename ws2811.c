@@ -1215,7 +1215,7 @@ ws2811_return_t  ws2811_render(ws2811_t *ws2811)
     // do the spread spectrum magic
     if (driver_mode == SPI)
     {
-        uint32_t speed = spread_spec_lookup[spread_spectrum_counter] * 3;
+        uint32_t speed = spread_spec_lookup[spread_spectrum_counter % SPI_SPREAD_SPEC_CHANNELS] * 3;
 
         if (ioctl(ws2811->device->spi_fd, SPI_IOC_WR_MAX_SPEED_HZ, &speed) < 0)
         {
