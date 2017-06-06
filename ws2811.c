@@ -730,6 +730,28 @@ static int check_hwver_and_gpionum(ws2811_t *ws2811)
     return -1;
 }
 
+static void populate_spread_spec_lookup(void)
+{
+    // generate non random lookup table according to the min, max and channel count
+    size_t i;
+    for (i = 0; i < SPI_SPREAD_SPEC_CHANNELS; i++)
+    {
+        spread_spec_lookup[i] = ((SPI_MAX_FREQ - SPI_MIN_FREQ) / SPI_SPREAD_SPEC_CHANNELS) * (i+1);
+    }
+    // randomize the lookup table
+    if (SPI_SPREAD_SPEC_CHANNELS > 1)
+    {
+        size_t j;
+        for (j = 0; j < SPI_SPREAD_SPEC_CHANNELS - 1; j++)
+        {
+          size_t k = j + rand() / (RAND_MAX / (SPI_SPREAD_SPEC_CHANNELS - j) + 1);
+          int t = spread_spec_lookup[k];
+          spread_spec_lookup[k] = spread_spec_lookup[j];
+          spread_spec_lookup[j] = t;
+        }
+    }
+}
+
 static ws2811_return_t spi_init(ws2811_t *ws2811)
 {
     int spi_fd;
@@ -818,28 +840,6 @@ static ws2811_return_t spi_init(ws2811_t *ws2811)
     populate_spread_spec_lookup();
 
     return WS2811_SUCCESS;
-}
-
-static populate_spread_spec_lookup()
-{
-    // generate non random lookup table according to the min, max and channel count
-    size_t i;
-    for (i = 0; i < SPI_SPREAD_SPEC_CHANNELS; i++)
-    {
-        spread_spec_lookup[i] = ((SPI_MAX_FREQ - SPI_MIN_FREQ) / SPI_SPREAD_SPEC_CHANNELS) * (i+1)
-    }
-    // randomize the lookup table
-    if (SPI_SPREAD_SPEC_CHANNELS > 1)
-    {
-        size_t j;
-        for (j = 0; j < SPI_SPREAD_SPEC_CHANNELS - 1; j++)
-        {
-          size_t k = j + rand() / (RAND_MAX / (SPI_SPREAD_SPEC_CHANNELS - j) + 1);
-          int t = spread_spec_lookup[k];
-          spread_spec_lookup[k] = spread_spec_lookup[j];
-          spread_spec_lookup[j] = t;
-        }
-    }
 }
 
 static ws2811_return_t spi_transfer(ws2811_t *ws2811)
