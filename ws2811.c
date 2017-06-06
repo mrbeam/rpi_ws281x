@@ -88,8 +88,8 @@
 // Spread Spectrum globals and definitions
 #define SPREAD_SPEC_BADWITH                     300000
 #define SPI_SPREAD_SPEC_CHANNELS                1000
-unsigned int spread_spectrum_counter            = 0;
-int spread_spec_lookup[SPI_SPREAD_SPEC_CHANNELS];
+uint32 spread_spectrum_counter            = 0;
+uint32_t spread_spec_lookup[SPI_SPREAD_SPEC_CHANNELS];
 
 
 // We use the mailbox interface to request memory from the VideoCore.
