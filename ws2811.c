@@ -736,7 +736,7 @@ static void populate_spread_spec_lookup(void)
     size_t i;
     for (i = 0; i < SPI_SPREAD_SPEC_CHANNELS; i++)
     {
-        spread_spec_lookup[i] = ((SPI_MAX_FREQ - SPI_MIN_FREQ) / SPI_SPREAD_SPEC_CHANNELS) * (i+1);
+        spread_spec_lookup[i] = SPI_MIN_FREQ + (((SPI_MAX_FREQ - SPI_MIN_FREQ) / SPI_SPREAD_SPEC_CHANNELS) * (i+1));
     }
     // randomize the lookup table
     if (SPI_SPREAD_SPEC_CHANNELS > 1)
