@@ -1191,11 +1191,11 @@ ws2811_return_t  ws2811_render(ws2811_t *ws2811)
         uint32_t speed = ws2811->freq * 3;
         speed += lockup[counter % 11];
 
-        if (ioctl(spi_fd, SPI_IOC_WR_MAX_SPEED_HZ, &speed) < 0)
+        if (ioctl(ws2811->device->spi_fd, SPI_IOC_WR_MAX_SPEED_HZ, &speed) < 0)
         {
             return WS2811_ERROR_SPI_SETUP;
         }
-        if (ioctl(spi_fd, SPI_IOC_RD_MAX_SPEED_HZ, &speed) < 0)
+        if (ioctl(ws2811->device->spi_fd, SPI_IOC_RD_MAX_SPEED_HZ, &speed) < 0)
         {
             return WS2811_ERROR_SPI_SETUP;
         }
