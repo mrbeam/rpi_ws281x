@@ -736,7 +736,7 @@ static void populate_spread_spec_lookup(uint32_t freq)
     size_t i;
     for (i = 0; i < SPREAD_SPEC_BANDWIDTH / SPI_SPREAD_SPEC_CHANNEL_WIDTH; i++)
     {
-        spread_spec_lookup[i] = (freq - SPREAD_SPEC_BANDWIDTH / 2)  + SPI_SPREAD_SPEC_CHANNEL_WIDTH * (i+1);
+        spread_spec_lookup[i] = ((freq - SPREAD_SPEC_BANDWIDTH / 2)  + SPI_SPREAD_SPEC_CHANNEL_WIDTH * (i+1)) * 3;
     }
 }
 
@@ -1120,7 +1120,7 @@ ws2811_return_t  ws2811_render(ws2811_t *ws2811)
         accum = (now.tv_sec - last_hop_timestamp.tv_sec) + (now.tv_nsec - last_hop_timestamp.tv_nsec) / 1E9;
         if(accum > HOPPING_DELAY){
             uint32_t idx = freq_idx++ % (SPREAD_SPEC_BANDWIDTH / SPI_SPREAD_SPEC_CHANNEL_WIDTH);
-            uint32_t speed = spread_spec_lookup[idx] * 3;
+            uint32_t speed = spread_spec_lookup[idx];
             if (ioctl(ws2811->device->spi_fd, SPI_IOC_WR_MAX_SPEED_HZ, &speed) < 0)
             {
                 return WS2811_ERROR_SPI_SETUP;
