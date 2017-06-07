@@ -1212,6 +1212,7 @@ ws2811_return_t  ws2811_render(ws2811_t *ws2811)
             {
                 return WS2811_ERROR_SPI_SETUP;
             }
+            last_hop_timestamp = now;
             //uint32_t speed_Hz;
             //ret = ioctl(ws2811->device->spi_fd, SPI_IOC_RD_MAX_SPEED_HZ, &speed_Hz);
             //printf("idx: %d, new: %d, cur: %d\n", idx, speed, speed_Hz);
