@@ -1117,7 +1117,7 @@ ws2811_return_t  ws2811_render(ws2811_t *ws2811)
         double accum;
         clock_gettime(CLOCK_MONOTONIC, &now);
 
-        accum = (now.tv_sec - last_hop_timestamp.tv_sec) + (now.tv_nsec - last_hop_timestamp.tv_nsec) / 1000000000L
+        accum = (now.tv_sec - last_hop_timestamp.tv_sec) + (now.tv_nsec - last_hop_timestamp.tv_nsec) / 1E9;
         if(accum > HOPPING_DELAY){
             uint32_t idx = freq_idx++ % (SPREAD_SPEC_BANDWIDTH / SPI_SPREAD_SPEC_CHANNEL_WIDTH);
             uint32_t speed = spread_spec_lookup[idx] * 3;
