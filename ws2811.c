@@ -735,7 +735,7 @@ static void populate_spread_spec_lookup(uint32_t freq)
     size_t i;
     for (i = 0; i < SPREAD_SPEC_BANDWIDTH / SPI_SPREAD_SPEC_CHANNEL_WIDTH; i++)
     {
-        spread_spec_lookup[i] = (freq - SPREAD_SPEC_BANDWIDTH / 2)  + SPI_SPREAD_SPEC_CHANNEL_WIDTH * (i+1));
+        spread_spec_lookup[i] = (freq - SPREAD_SPEC_BANDWIDTH / 2)  + SPI_SPREAD_SPEC_CHANNEL_WIDTH * (i+1);
     }
 }
 
