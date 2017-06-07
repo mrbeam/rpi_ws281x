@@ -1110,6 +1110,28 @@ ws2811_return_t  ws2811_render(ws2811_t *ws2811)
 
     bitpos = (driver_mode == SPI ? 7 : 31);
 
+    // do the spread spectrum magic
+    if (driver_mode == SPI)
+    {
+        struct timespec now;
+        double accum;
+        clock_gettime(CLOCK_MONOTONIC, &now);
+
+        accum = (now.tv_sec - last_hop_timestamp.tv_sec) + (now.tv_nsec - last_hop_timestamp.tv_nsec) / 1000000000L
+        if(accum > HOPPING_DELAY){
+            uint32_t idx = freq_idx++ % (SPREAD_SPEC_BANDWIDTH / SPI_SPREAD_SPEC_CHANNEL_WIDTH);
+            uint32_t speed = spread_spec_lookup[idx] * 3;
+            if (ioctl(ws2811->device->spi_fd, SPI_IOC_WR_MAX_SPEED_HZ, &speed) < 0)
+            {
+                return WS2811_ERROR_SPI_SETUP;
+            }
+            last_hop_timestamp = now;
+            //uint32_t speed_Hz;
+            //ret = ioctl(ws2811->device->spi_fd, SPI_IOC_RD_MAX_SPEED_HZ, &speed_Hz);
+            //printf("idx: %d, new: %d, cur: %d\n", idx, speed, speed_Hz);
+        }
+    }
+
     for (chan = 0; chan < RPI_PWM_CHANNELS; chan++)         // Channel
     {
         ws2811_channel_t *channel = &ws2811->channel[chan];
@@ -1199,27 +1221,6 @@ ws2811_return_t  ws2811_render(ws2811_t *ws2811)
                 }
 	    }
 	}
-    }
-    // do the spread spectrum magic
-    if (driver_mode == SPI)
-    {
-        struct timespec now;
-        double accum;
-        clock_gettime(CLOCK_MONOTONIC, &now);
-
-        accum = (now.tv_sec - last_hop_timestamp.tv_sec) + (now.tv_nsec - last_hop_timestamp.tv_nsec) / 1000000000L
-        if(accum > HOPPING_DELAY){
-            uint32_t idx = freq_idx++ % (SPREAD_SPEC_BANDWIDTH / SPI_SPREAD_SPEC_CHANNEL_WIDTH);
-            uint32_t speed = spread_spec_lookup[idx] * 3;
-            if (ioctl(ws2811->device->spi_fd, SPI_IOC_WR_MAX_SPEED_HZ, &speed) < 0)
-            {
-                return WS2811_ERROR_SPI_SETUP;
-            }
-            last_hop_timestamp = now;
-            //uint32_t speed_Hz;
-            //ret = ioctl(ws2811->device->spi_fd, SPI_IOC_RD_MAX_SPEED_HZ, &speed_Hz);
-            //printf("idx: %d, new: %d, cur: %d\n", idx, speed, speed_Hz);
-        }
     }
 
     // Wait for any previous DMA operation to complete.
