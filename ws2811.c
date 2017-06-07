@@ -86,10 +86,11 @@
 #define SPI	3
 
 // Spread Spectrum globals and definitions
-#define SPREAD_SPEC_BANDWIDTH                     300000
-#define SPI_SPREAD_SPEC_CHANNELS                1000
-uint32_t spread_spectrum_counter            = 0;
-uint32_t spread_spec_lookup[SPI_SPREAD_SPEC_CHANNELS];
+#define SPREAD_SPEC_BANDWIDTH                     180000
+#define SPI_SPREAD_SPEC_CHANNEL_WIDTH           9000
+uint32_t freq_idx                               = 0;
+uint32_t spread_spec_lookup[SPREAD_SPEC_BANDWIDTH / SPI_SPREAD_SPEC_CHANNEL_WIDTH];
+struct timespec last_hop_timestamp;
 
 
 // We use the mailbox interface to request memory from the VideoCore.
@@ -651,7 +652,7 @@ static int set_driver_mode(ws2811_t *ws2811, int gpionum)
         gpionum2 = ws2811->channel[1].gpionum;
         if (gpionum2 == 0 || gpionum2 == 13 || gpionum2 == 19) {
             return 0;
-        } 
+        }
     }
     else if (gpionum == 21 || gpionum == 31) {
         ws2811->device->driver_mode = PCM;
@@ -731,23 +732,10 @@ static int check_hwver_and_gpionum(ws2811_t *ws2811)
 
 static void populate_spread_spec_lookup(uint32_t freq)
 {
-    // generate non random lookup table according to the min, max and channel count
     size_t i;
-    for (i = 0; i < SPI_SPREAD_SPEC_CHANNELS; i++)
+    for (i = 0; i < SPREAD_SPEC_BANDWIDTH / SPI_SPREAD_SPEC_CHANNEL_WIDTH; i++)
     {
-        spread_spec_lookup[i] = (freq - SPREAD_SPEC_BANDWIDTH / 2)  + ((SPREAD_SPEC_BANDWIDTH / SPI_SPREAD_SPEC_CHANNELS) * (i+1));
-    }
-    // randomize the lookup table
-    if (SPI_SPREAD_SPEC_CHANNELS > 1)
-    {
-        size_t j;
-        for (j = 0; j < SPI_SPREAD_SPEC_CHANNELS - 1; j++)
-        {
-          size_t k = j + rand() / (RAND_MAX / (SPI_SPREAD_SPEC_CHANNELS - j) + 1);
-          int t = spread_spec_lookup[k];
-          spread_spec_lookup[k] = spread_spec_lookup[j];
-          spread_spec_lookup[j] = t;
-        }
+        spread_spec_lookup[i] = (freq - SPREAD_SPEC_BANDWIDTH / 2)  + SPI_SPREAD_SPEC_CHANNEL_WIDTH * (i+1));
     }
 }
 
@@ -859,7 +847,7 @@ static ws2811_return_t spi_transfer(ws2811_t *ws2811)
     }
 
     return WS2811_SUCCESS;
-}    
+}
 
 
 /*
@@ -1208,21 +1196,26 @@ ws2811_return_t  ws2811_render(ws2811_t *ws2811)
                         }
                     }
                 }
-            }
-        }
+	    }
+	}
     }
-
     // do the spread spectrum magic
     if (driver_mode == SPI)
     {
-        uint32_t speed = spread_spec_lookup[spread_spectrum_counter % SPI_SPREAD_SPEC_CHANNELS] * 3;
+        struct timespec now;
+        clock_gettime(CLOCK_MONOTONIC, &now);
 
-        if (ioctl(ws2811->device->spi_fd, SPI_IOC_WR_MAX_SPEED_HZ, &speed) < 0)
-        {
-            return WS2811_ERROR_SPI_SETUP;
+        if(now.tv_sec - last_hop_timestamp.tv_sec > 1){
+            uint32_t idx = freq_idx++ % (SPREAD_SPEC_BANDWIDTH / SPI_SPREAD_SPEC_CHANNEL_WIDTH);
+            uint32_t speed = spread_spec_lookup[idx] * 3;
+            if (ioctl(ws2811->device->spi_fd, SPI_IOC_WR_MAX_SPEED_HZ, &speed) < 0)
+            {
+                return WS2811_ERROR_SPI_SETUP;
+            }
+            //uint32_t speed_Hz;
+            //ret = ioctl(ws2811->device->spi_fd, SPI_IOC_RD_MAX_SPEED_HZ, &speed_Hz);
+            //printf("idx: %d, new: %d, cur: %d\n", idx, speed, speed_Hz);
         }
-
-        spread_spectrum_counter++;
     }
 
     // Wait for any previous DMA operation to complete.
