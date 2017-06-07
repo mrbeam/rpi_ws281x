@@ -86,8 +86,9 @@
 #define SPI	3
 
 // Spread Spectrum globals and definitions
-#define SPREAD_SPEC_BANDWIDTH                     180000
+#define SPREAD_SPEC_BANDWIDTH                   180000
 #define SPI_SPREAD_SPEC_CHANNEL_WIDTH           9000
+#define HOPPING_DELAY                           1
 uint32_t freq_idx                               = 0;
 uint32_t spread_spec_lookup[SPREAD_SPEC_BANDWIDTH / SPI_SPREAD_SPEC_CHANNEL_WIDTH];
 struct timespec last_hop_timestamp;
@@ -1203,9 +1204,11 @@ ws2811_return_t  ws2811_render(ws2811_t *ws2811)
     if (driver_mode == SPI)
     {
         struct timespec now;
+        double accum;
         clock_gettime(CLOCK_MONOTONIC, &now);
 
-        if(now.tv_sec - last_hop_timestamp.tv_sec > 1){
+        accum = (now.tv_sec - last_hop_timestamp.tv_sec) + (now.tv_nsec - last_hop_timestamp.tv_nsec) / 1000000000L
+        if(accum > HOPPING_DELAY){
             uint32_t idx = freq_idx++ % (SPREAD_SPEC_BANDWIDTH / SPI_SPREAD_SPEC_CHANNEL_WIDTH);
             uint32_t speed = spread_spec_lookup[idx] * 3;
             if (ioctl(ws2811->device->spi_fd, SPI_IOC_WR_MAX_SPEED_HZ, &speed) < 0)
