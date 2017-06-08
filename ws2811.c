@@ -86,13 +86,13 @@
 #define SPI	3
 
 //// Spread Spectrum globals and definitions
-int enable_spread_spectrum = 0;
-uint32_t spread_spectrum_bandwidth = DEFAULT_SPREAD_SPEC_BANDWIDTH;
-uint32_t spi_spread_channel_width = DEFAULT_SPI_SPREAD_SPEC_CHANNEL_WIDTH;
-uint32_t hopping_delay = DEFAULT_HOPPING_DELAY;
+int spread_spectrum_enabled = 0;
+uint32_t spread_spectrum_bandwidth = SPREAD_SPECTRUM_BANDWIDTH_DEFAULT;
+uint32_t spread_spectrum_channel_width = SPREAD_SPECTRUM_CHANNEL_WIDTH_DEFAULT;
+uint32_t spread_spectrum_hopping_delay = SPREAD_SPECTRUM_HOPPING_DELAY_DEFAULT;
 
 uint32_t freq_idx                               = 0;
-uint32_t spread_spec_lookup[MAX_SPREAD_SPEC_LOOKUP_TABLE_SIZE];
+uint32_t spread_spec_lookup[SPREAD_SPECTRUM_LOOKUP_TABLE_SIZE_MAX];
 struct timespec last_hop_timestamp;
 
 
@@ -736,12 +736,12 @@ static int check_hwver_and_gpionum(ws2811_t *ws2811)
 static void populate_spread_spec_lookup(uint32_t freq)
 {
     size_t i;
-    for (i = 0; i < spread_spectrum_bandwidth / spi_spread_channel_width; i++)
+    for (i = 0; i < spread_spectrum_bandwidth / spread_spectrum_channel_width; i++)
     {
-        if (i >= MAX_SPREAD_SPEC_LOOKUP_TABLE_SIZE) {
+        if (i >= SPREAD_SPECTRUM_LOOKUP_TABLE_SIZE_MAX) {
             return;
         }
-        spread_spec_lookup[i] = ((freq - spread_spectrum_bandwidth / 2)  + spi_spread_channel_width * (i+1)) * 3;
+        spread_spec_lookup[i] = ((freq - spread_spectrum_bandwidth / 2)  + spread_spectrum_channel_width * (i+1)) * 3;
     }
 }
 
@@ -830,7 +830,7 @@ static ws2811_return_t spi_init(ws2811_t *ws2811)
     }
     pcm_raw_init(ws2811);
 
-    if (enable_spread_spectrum > 0) {
+    if (spread_spectrum_enabled > 0) {
         populate_spread_spec_lookup(ws2811->freq);
     }
 
@@ -1118,16 +1118,16 @@ ws2811_return_t  ws2811_render(ws2811_t *ws2811)
     bitpos = (driver_mode == SPI ? 7 : 31);
 
     // do the spread spectrum magic
-    if (driver_mode == SPI && enable_spread_spectrum > 0)
+    if (driver_mode == SPI && spread_spectrum_enabled > 0)
     {
         struct timespec now;
         double accum;
         clock_gettime(CLOCK_MONOTONIC, &now);
 
         accum = (now.tv_sec - last_hop_timestamp.tv_sec) + (now.tv_nsec - last_hop_timestamp.tv_nsec) / 1E9;
-        if(accum > hopping_delay){
-            uint32_t idx = freq_idx++ % (spread_spectrum_bandwidth / spi_spread_channel_width);
-            if (idx >= MAX_SPREAD_SPEC_LOOKUP_TABLE_SIZE) {
+        if(accum > spread_spectrum_hopping_delay){
+            uint32_t idx = freq_idx++ % (spread_spectrum_bandwidth / spread_spectrum_channel_width);
+            if (idx >= SPREAD_SPECTRUM_LOOKUP_TABLE_SIZE_MAX) {
                 freq_idx = 1;
                 idx = 0;
             }

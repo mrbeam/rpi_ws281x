@@ -83,12 +83,6 @@ class Adafruit_NeoPixel(object):
 		ws.ws2811_t_freq_set(self._leds, freq_hz)
 		ws.ws2811_t_dmanum_set(self._leds, dma)
 
-		# enable spread_spectrum
-		ws.cvar.enable_spread_spectrum = 	1
-		ws.cvar.spread_spectrum_bandwidth = 180000
-		ws.cvar.spi_spread_channel_width =  9000
-		ws.cvar.hopping_delay = 			1
-
 		# Grab the led data array.
 		self._led_data = _LED_Data(self._channel, num)
 		
@@ -158,3 +152,17 @@ class Adafruit_NeoPixel(object):
 	def getPixelColor(self, n):
 		"""Get the 24-bit RGB color value for the LED at position n."""
 		return self._led_data[n]
+
+	def set_spread_spectrum_config(self, spread_spectrum_enabled,
+				 spread_spectrum_bandwidth=None,
+				 spread_spectrum_channel_width=None,
+				 spread_spectrum_hopping_delay=None):
+		# enable spread_spectrum
+		ws.cvar.spread_spectrum_enabled = 1 if spread_spectrum_enabled else 0
+		if spread_spectrum_bandwidth is not None:
+			ws.cvar.spread_spectrum_bandwidth = spread_spectrum_bandwidth
+		if spread_spectrum_channel_width is not None:
+			ws.cvar.spread_spectrum_channel_width = spread_spectrum_channel_width
+		if spread_spectrum_hopping_delay is not None:
+			ws.cvar.spread_spectrum_hopping_delay = spread_spectrum_hopping_delay
+
