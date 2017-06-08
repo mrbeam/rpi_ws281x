@@ -83,6 +83,12 @@ class Adafruit_NeoPixel(object):
 		ws.ws2811_t_freq_set(self._leds, freq_hz)
 		ws.ws2811_t_dmanum_set(self._leds, dma)
 
+		# enable spread_spectrum
+		ws.cvar.enable_spread_spectrum = 	1
+		ws.cvar.spread_spectrum_bandwidth = 180000
+		ws.cvar.spi_spread_channel_width =  9000
+		ws.cvar.hopping_delay = 			1
+
 		# Grab the led data array.
 		self._led_data = _LED_Data(self._channel, num)
 		

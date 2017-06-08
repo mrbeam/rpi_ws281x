@@ -85,12 +85,9 @@
 #define PCM	2
 #define SPI	3
 
-// Spread Spectrum globals and definitions
-#define SPREAD_SPEC_BANDWIDTH                   180000
-#define SPI_SPREAD_SPEC_CHANNEL_WIDTH           9000
-#define HOPPING_DELAY                           1
+//// Spread Spectrum globals and definitions
 uint32_t freq_idx                               = 0;
-uint32_t spread_spec_lookup[SPREAD_SPEC_BANDWIDTH / SPI_SPREAD_SPEC_CHANNEL_WIDTH];
+uint32_t spread_spec_lookup[MAX_SPREAD_SPEC_LOOKUP_TABLE_SIZE];
 struct timespec last_hop_timestamp;
 
 
@@ -734,9 +731,12 @@ static int check_hwver_and_gpionum(ws2811_t *ws2811)
 static void populate_spread_spec_lookup(uint32_t freq)
 {
     size_t i;
-    for (i = 0; i < SPREAD_SPEC_BANDWIDTH / SPI_SPREAD_SPEC_CHANNEL_WIDTH; i++)
+    for (i = 0; i < spread_spectrum_bandwidth / spi_spread_channel_width; i++)
     {
-        spread_spec_lookup[i] = ((freq - SPREAD_SPEC_BANDWIDTH / 2)  + SPI_SPREAD_SPEC_CHANNEL_WIDTH * (i+1)) * 3;
+        if (i >= MAX_SPREAD_SPEC_LOOKUP_TABLE_SIZE) {
+            return;
+        }
+        spread_spec_lookup[i] = ((freq - spread_spectrum_bandwidth / 2)  + spi_spread_channel_width * (i+1)) * 3;
     }
 }
 
@@ -825,7 +825,9 @@ static ws2811_return_t spi_init(ws2811_t *ws2811)
     }
     pcm_raw_init(ws2811);
 
-    populate_spread_spec_lookup(ws2811->freq);
+    if (enable_spread_spectrum > 0) {
+        populate_spread_spec_lookup(ws2811->freq);
+    }
 
     return WS2811_SUCCESS;
 }
@@ -1111,15 +1113,19 @@ ws2811_return_t  ws2811_render(ws2811_t *ws2811)
     bitpos = (driver_mode == SPI ? 7 : 31);
 
     // do the spread spectrum magic
-    if (driver_mode == SPI)
+    if (driver_mode == SPI && spread_spec_lookup > 0)
     {
         struct timespec now;
         double accum;
         clock_gettime(CLOCK_MONOTONIC, &now);
 
         accum = (now.tv_sec - last_hop_timestamp.tv_sec) + (now.tv_nsec - last_hop_timestamp.tv_nsec) / 1E9;
-        if(accum > HOPPING_DELAY){
-            uint32_t idx = freq_idx++ % (SPREAD_SPEC_BANDWIDTH / SPI_SPREAD_SPEC_CHANNEL_WIDTH);
+        if(accum > hopping_delay){
+            uint32_t idx = freq_idx++ % (spread_spectrum_bandwidth / spi_spread_channel_width);
+            if (idx >= MAX_SPREAD_SPEC_LOOKUP_TABLE_SIZE) {
+                freq_idx = 1;
+                idx = 0;
+            }
             uint32_t speed = spread_spec_lookup[idx];
             if (ioctl(ws2811->device->spi_fd, SPI_IOC_WR_MAX_SPEED_HZ, &speed) < 0)
             {
