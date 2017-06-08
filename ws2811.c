@@ -86,6 +86,11 @@
 #define SPI	3
 
 //// Spread Spectrum globals and definitions
+int enable_spread_spectrum = 0;
+uint32_t spread_spectrum_bandwidth = DEFAULT_SPREAD_SPEC_BANDWIDTH;
+uint32_t spi_spread_channel_width = DEFAULT_SPI_SPREAD_SPEC_CHANNEL_WIDTH;
+uint32_t hopping_delay = DEFAULT_HOPPING_DELAY;
+
 uint32_t freq_idx                               = 0;
 uint32_t spread_spec_lookup[MAX_SPREAD_SPEC_LOOKUP_TABLE_SIZE];
 struct timespec last_hop_timestamp;
@@ -1113,7 +1118,7 @@ ws2811_return_t  ws2811_render(ws2811_t *ws2811)
     bitpos = (driver_mode == SPI ? 7 : 31);
 
     // do the spread spectrum magic
-    if (driver_mode == SPI && spread_spec_lookup > 0)
+    if (driver_mode == SPI && enable_spread_spectrum > 0)
     {
         struct timespec now;
         double accum;

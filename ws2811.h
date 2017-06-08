@@ -127,11 +127,10 @@ const char * ws2811_get_return_t_str(const ws2811_return_t state);     //< Get s
 #define DEFAULT_SPI_SPREAD_SPEC_CHANNEL_WIDTH           9000
 #define DEFAULT_HOPPING_DELAY                           1
 #define MAX_SPREAD_SPEC_LOOKUP_TABLE_SIZE               1000
-
-int enable_spread_spectrum = 0;
-uint32_t spread_spectrum_bandwidth = DEFAULT_SPREAD_SPEC_BANDWIDTH;
-uint32_t spi_spread_channel_width = DEFAULT_SPI_SPREAD_SPEC_CHANNEL_WIDTH;
-uint32_t hopping_delay = DEFAULT_HOPPING_DELAY;
+extern int enable_spread_spectrum;
+extern uint32_t spread_spectrum_bandwidth;
+extern uint32_t spi_spread_channel_width;
+extern uint32_t hopping_delay;
 
 #ifdef __cplusplus
 }
