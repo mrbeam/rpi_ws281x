@@ -734,31 +734,42 @@ static int check_hwver_and_gpionum(ws2811_t *ws2811)
     return -1;
 }
 
+/* Arrange the N elements of ARRAY in random order.
+   Only effective if N is much smaller than RAND_MAX;
+   if this may not be the case, use a better random
+   number generator. */
+static void shuffle(uint32_t *array, size_t n)
+{
+    if (n > 1)
+    {
+        size_t i;
+        for (i = 0; i < n - 1; i++)
+        {
+          size_t j = i + rand() / (RAND_MAX / (n - i) + 1);
+          uint32_t t = array[j];
+          array[j] = array[i];
+          array[i] = t;
+        }
+    }
+}
+
 static void populate_spread_spec_lookup(uint32_t freq)
 {
     size_t i;
     for (i = 0; i < spread_spectrum_bandwidth / spread_spectrum_channel_width; i++)
     {
         if (i >= SPREAD_SPECTRUM_LOOKUP_TABLE_SIZE_MAX) {
-            return;
+            break;
         }
         spread_spec_lookup[i] = ((freq - spread_spectrum_bandwidth / 2)  + spread_spectrum_channel_width * (i+1)) * 3;
     }
 
-    // randomize the lookup table
-    size_t max_idx = i;
-    if (spread_spectrum_random > 0 && max_idx > 1)
-    {
-        size_t j;
-        for (j = 0; j <= max_idx; j++)
-        {
-          size_t k = j + rand() / (RAND_MAX / (max_idx - j) + 1);
-          int t = spread_spec_lookup[k];
-          spread_spec_lookup[k] = spread_spec_lookup[j];
-          spread_spec_lookup[j] = t;
-        }
+    if (spread_spectrum_random > 0) {
+        shuffle(spread_spec_lookup, i);
     }
+
 }
+
 
 static ws2811_return_t spi_init(ws2811_t *ws2811)
 {
