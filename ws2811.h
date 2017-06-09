@@ -125,12 +125,12 @@ const char * ws2811_get_return_t_str(const ws2811_return_t state);     //< Get s
 // Spread Spectrum globals and definitions
 #define SPREAD_SPECTRUM_BANDWIDTH_DEFAULT               180000
 #define SPREAD_SPECTRUM_CHANNEL_WIDTH_DEFAULT           9000
-#define SPREAD_SPECTRUM_HOPPING_DELAY_DEFAULT           1
+#define SPREAD_SPECTRUM_HOPPING_DELAY_MS_DEFAULT        1000
 #define SPREAD_SPECTRUM_LOOKUP_TABLE_SIZE_MAX           1000
 extern int spread_spectrum_enabled;
 extern uint32_t spread_spectrum_bandwidth;
 extern uint32_t spread_spectrum_channel_width;
-extern uint32_t spread_spectrum_hopping_delay;
+extern uint32_t spread_spectrum_hopping_delay_ms;
 
 #ifdef __cplusplus
 }

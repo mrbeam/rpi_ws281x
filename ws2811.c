@@ -89,7 +89,7 @@
 int spread_spectrum_enabled = 0;
 uint32_t spread_spectrum_bandwidth = SPREAD_SPECTRUM_BANDWIDTH_DEFAULT;
 uint32_t spread_spectrum_channel_width = SPREAD_SPECTRUM_CHANNEL_WIDTH_DEFAULT;
-uint32_t spread_spectrum_hopping_delay = SPREAD_SPECTRUM_HOPPING_DELAY_DEFAULT;
+uint32_t spread_spectrum_hopping_delay_ms = SPREAD_SPECTRUM_HOPPING_DELAY_MS_DEFAULT;
 
 uint32_t freq_idx                               = 0;
 uint32_t spread_spec_lookup[SPREAD_SPECTRUM_LOOKUP_TABLE_SIZE_MAX];
@@ -1125,7 +1125,7 @@ ws2811_return_t  ws2811_render(ws2811_t *ws2811)
         clock_gettime(CLOCK_MONOTONIC, &now);
 
         accum = (now.tv_sec - last_hop_timestamp.tv_sec) + (now.tv_nsec - last_hop_timestamp.tv_nsec) / 1E9;
-        if(accum > spread_spectrum_hopping_delay){
+        if(accum > spread_spectrum_hopping_delay_ms / 1000.0){
             uint32_t idx = freq_idx++ % (spread_spectrum_bandwidth / spread_spectrum_channel_width);
             if (idx >= SPREAD_SPECTRUM_LOOKUP_TABLE_SIZE_MAX) {
                 freq_idx = 1;
