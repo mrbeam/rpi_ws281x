@@ -154,11 +154,13 @@ class Adafruit_NeoPixel(object):
 		return self._led_data[n]
 
 	def set_spread_spectrum_config(self, spread_spectrum_enabled,
+				 spread_spectrum_random=False,
 				 spread_spectrum_bandwidth=None,
 				 spread_spectrum_channel_width=None,
 				 spread_spectrum_hopping_delay_ms=None):
 		# enable spread_spectrum
 		ws.cvar.spread_spectrum_enabled = 1 if spread_spectrum_enabled else 0
+		ws.cvar.spread_spectrum_random = 1 if spread_spectrum_random else 0
 		if spread_spectrum_bandwidth is not None:
 			ws.cvar.spread_spectrum_bandwidth = spread_spectrum_bandwidth
 		if spread_spectrum_channel_width is not None:

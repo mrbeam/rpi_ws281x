@@ -87,6 +87,7 @@
 
 //// Spread Spectrum globals and definitions
 int spread_spectrum_enabled = 0;
+int spread_spectrum_random = 0;
 uint32_t spread_spectrum_bandwidth = SPREAD_SPECTRUM_BANDWIDTH_DEFAULT;
 uint32_t spread_spectrum_channel_width = SPREAD_SPECTRUM_CHANNEL_WIDTH_DEFAULT;
 uint32_t spread_spectrum_hopping_delay_ms = SPREAD_SPECTRUM_HOPPING_DELAY_MS_DEFAULT;
@@ -742,6 +743,20 @@ static void populate_spread_spec_lookup(uint32_t freq)
             return;
         }
         spread_spec_lookup[i] = ((freq - spread_spectrum_bandwidth / 2)  + spread_spectrum_channel_width * (i+1)) * 3;
+    }
+
+    // randomize the lookup table
+    size_t max_idx = i;
+    if (spread_spectrum_random > 0 && max_idx > 1)
+    {
+        size_t j;
+        for (j = 0; j <= max_idx; j++)
+        {
+          size_t k = j + rand() / (RAND_MAX / (max_idx - j) + 1);
+          int t = spread_spec_lookup[k];
+          spread_spec_lookup[k] = spread_spec_lookup[j];
+          spread_spec_lookup[j] = t;
+        }
     }
 }
 
