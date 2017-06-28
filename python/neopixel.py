@@ -152,3 +152,10 @@ class Adafruit_NeoPixel(object):
 	def getPixelColor(self, n):
 		"""Get the 24-bit RGB color value for the LED at position n."""
 		return self._led_data[n]
+
+	def set_spread_spectrum_config(self, spread_spectrum_enabled,
+	                               spread_spectrum_random=False,
+	                               spread_spectrum_bandwidth=None,
+	                               spread_spectrum_channel_width=None,
+	                               spread_spectrum_hopping_delay_ms=None):
+		pass
