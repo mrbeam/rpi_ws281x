@@ -834,7 +834,7 @@ static ws2811_return_t spi_init(ws2811_t *ws2811)
     if (!channel->leds)
     {
         ws2811_cleanup(ws2811);
-	return WS2811_ERROR_OUT_OF_MEMORY;
+        return WS2811_ERROR_OUT_OF_MEMORY;
     }
     memset(channel->leds, 0, sizeof(ws2811_led_t) * channel->count);
     if (!channel->strip_type)
@@ -877,7 +877,7 @@ static ws2811_return_t spi_transfer(ws2811_t *ws2811)
     if (ret < 1)
     {
         fprintf(stderr, "Can't send spi message");
-	return WS2811_ERROR_SPI_TRANSFER;
+        return WS2811_ERROR_SPI_TRANSFER;
     }
 
     return WS2811_SUCCESS;
@@ -991,7 +991,7 @@ ws2811_return_t ws2811_init(ws2811_t *ws2811)
         if (!channel->leds)
         {
             ws2811_cleanup(ws2811);
-	    return WS2811_ERROR_OUT_OF_MEMORY;
+            return WS2811_ERROR_OUT_OF_MEMORY;
         }
 
         memset(channel->leds, 0, sizeof(ws2811_led_t) * channel->count);
@@ -1140,6 +1140,7 @@ ws2811_return_t  ws2811_render(ws2811_t *ws2811)
     unsigned j;
     ws2811_return_t ret = WS2811_SUCCESS;
     uint32_t protocol_time = 0;
+    static uint64_t previous_timestamp = 0;
 
     bitpos = (driver_mode == SPI ? 7 : 31);
 
@@ -1178,14 +1179,14 @@ ws2811_return_t  ws2811_render(ws2811_t *ws2811)
         const int scale = (channel->brightness & 0xff) + 1;
         uint8_t array_size = 3; // Assume 3 color LEDs, RGB
 
-        // 1.25µs per bit
-        const uint32_t channel_protocol_time = channel->count * array_size * 8 * 1.25;
-
         // If our shift mask includes the highest nibble, then we have 4 LEDs, RBGW.
         if (channel->strip_type & SK6812_SHIFT_WMASK)
         {
             array_size = 4;
         }
+
+        // 1.25µs per bit
+        const uint32_t channel_protocol_time = channel->count * array_size * 8 * 1.25;
 
         // Only using the channel which takes the longest as both run in parallel
         if (channel_protocol_time > protocol_time)
@@ -1229,9 +1230,9 @@ ws2811_return_t  ws2811_render(ws2811_t *ws2811)
                             {
                                 *byteptr |= (1 << bitpos);
                             }
-			}
-			else  // PWM & PCM
-			{
+                        }
+                        else  // PWM & PCM
+                        {
                             *wordptr &= ~(1 << bitpos);
                             if (symbol & (1 << l))
                             {
@@ -1266,11 +1267,12 @@ ws2811_return_t  ws2811_render(ws2811_t *ws2811)
         return ret;
     }
 
-    if (ws2811->render_wait_until != 0) {
+    if (ws2811->render_wait_time != 0) {
         const uint64_t current_timestamp = get_microsecond_timestamp();
+        uint64_t time_diff = current_timestamp - previous_timestamp;
 
-        if (ws2811->render_wait_until > current_timestamp) {
-            usleep(ws2811->render_wait_until - current_timestamp);
+        if (ws2811->render_wait_time > time_diff) {
+            usleep(ws2811->render_wait_time - time_diff);
         }
     }
 
@@ -1284,7 +1286,8 @@ ws2811_return_t  ws2811_render(ws2811_t *ws2811)
     }
 
     // LED_RESET_WAIT_TIME is added to allow enough time for the reset to occur.
-    ws2811->render_wait_until = get_microsecond_timestamp() + protocol_time + LED_RESET_WAIT_TIME;
+    previous_timestamp = get_microsecond_timestamp();
+    ws2811->render_wait_time = protocol_time + LED_RESET_WAIT_TIME;
 
     return ret;
 }
