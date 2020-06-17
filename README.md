@@ -1,3 +1,16 @@
+# Mr Beam Comments
+This repo is checked out on all mr beam devices in `/hom/pi/rpi_ws281x` (yes, really!).
+Even though it is no longer used (date: June 2020). 
+Clients check the repo https://github.com/mrbeam/rpi_ws281x_compiled which contains a pre-compiled version.
+
+To build a new version On a Mr Beam device:
+- Bring your code changes to `/hom/pi/rpi_ws281x` on any mr beam device.
+- run `./update_script.sh` which compiles and installs your changes.
+- Find the two file you need either
+  - in `./python/build/lib.linux-armv7l-2.7/` or
+  - in `/usr/local/lib/python2.7/dist-packages` (installed version)
+
+
 rpi_ws281x
 ==========
 
